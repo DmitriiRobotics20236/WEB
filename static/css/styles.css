@@ -1,0 +1,129 @@
+h1 {
+    color: #800080;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+ul li {
+    color: green;
+}
+
+ul {
+    display: block;
+    width: 100%;
+    height: 75%;
+    background-color: rgba(255, 0, 0, .2);
+}
+
+form.login-form {
+    border: 1px dashed #f85c02;
+    border-radius: 5px;
+    background-color: antiquewhite;
+    padding: 10px;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+sup {
+    color: red;
+}
+
+form .pos {
+    text-align: right;
+}
+
+input {
+    margin-bottom: 5px;
+}
+
+.result {
+    font-family: 'Arial';
+    font-size: 16pt;
+    border: 1px solid #335522;
+    border-radius: 5px;
+    background-color: #fefafa;
+    padding: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.centered {
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    color: red;
+}
+
+td.delay {
+    opacity: 0;
+    animation: appear 4s forwards;
+}
+
+table {
+    margin: 0 auto;
+    width: 50%;
+    border-collapse: collapse;
+}
+
+.nav-link {
+    transition: 0.2s;
+}
+
+.nav-link.active {
+    font-weight: 600;
+    color: #0d6efd !important;
+    background-color: #fff8db;
+    border-radius: 8px;
+}
+
+.nav-link:hover {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+@keyframes appear {
+    from {opacity: 0;}
+    to {opacity: 1; }
+}
+
+/* Дополнительные стили для магазина */
+.hover-shadow {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.btn {
+    border-radius: 8px;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5em 0.8em;
+}
+
+footer {
+    border-top: 1px solid #dee2e6;
+}
+
+.product-card {
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}

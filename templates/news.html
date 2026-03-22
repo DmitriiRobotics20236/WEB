@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{title}}</h1>
+<div class="py-3">
+    {% if current_user.is_authenticated %}
+    <a href="/add_news" class="btn btn-secondary">Добавить новость</a>
+    {% endif %}
+</div>
+{% if news %}
+{% for item in news %}
+<div class="row justify-content-md-center">
+    <div class="col-md-9 border rounded">
+        <div>
+            <h2>{{item.title}}</h2>
+        </div>
+        <div>
+            <p>{{item.content}}</p>
+        </div>
+        <div>
+            <b>Автор</b>: {{item.user.name}}<br>
+            <b>Дата публикации</b>: {{item.created_date.strftime('%d.%m.%Y в %H:%M.')}}
+        </div>
+        {% if current_user.is_authenticated and current_user == item.user %}
+        <div class="d-flex justify-content-end py-1">
+            <a href="/news/{{item.id}}" class="btn btn-warning btn-sm">Изменить</a>&nbsp;
+            <a href="/news_del/{{item.id}}" class="btn btn-danger btn-sm">Удалить</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endfor %}
+{% else %}
+<h2>Пока новостей нет!</h2>
+{% endif %}
+{% endblock %}

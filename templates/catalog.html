@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<!-- Фильтр по категориям -->
+<div class="mb-4">
+    <a href="/catalog" class="btn {% if not current_category %}btn-primary{% else %}btn-outline-secondary{% endif %} me-2">Все</a>
+    {% for cat in categories %}
+    <a href="/catalog?category={{ cat }}" class="btn {% if current_category == cat %}btn-primary{% else %}btn-outline-secondary{% endif %} me-2">{{ cat }}</a>
+    {% endfor %}
+</div>
+
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted small">{{ product.category }}</p>
+                <p class="card-text">{{ product.description[:120] }}{% if product.description|length > 120 %}...{% endif %}</p>
+                <div class="mt-3">
+                    {% if product.old_price %}
+                    <span class="text-decoration-line-through text-muted">{{ "%.2f"|format(product.old_price) }}₽</span>
+                    <span class="text-danger fw-bold fs-4">{{ "%.2f"|format(product.price) }}₽</span>
+                    <span class="badge bg-danger">-{{ ((product.old_price - product.price) / product.old_price * 100)|int }}%</span>
+                    {% else %}
+                    <span class="fw-bold fs-4">{{ "%.2f"|format(product.price) }}₽</span>
+                    {% endif %}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">В наличии: {{ product.stock }} шт.</small>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-grid gap-2">
+                    <a href="/product/{{ product.id }}" class="btn btn-outline-primary">Подробнее</a>
+                    {% if current_user.is_authenticated and product.stock > 0 %}
+                    <a href="/add_to_cart/{{ product.id }}" class="btn btn-success">В корзину 🛒</a>
+                    {% elif not current_user.is_authenticated %}
+                    <a href="/login" class="btn btn-secondary">Войдите, чтобы купить</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h3>Товаров пока нет</h3>
+            <p>Загляните позже, мы пополняем ассортимент!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="display-1">📦</div>
+                <h2>{{ product.name }}</h2>
+                <p class="text-muted">Категория: {{ product.category }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3>Описание</h3>
+                <p>{{ product.description }}</p>
+                
+                <hr>
+                
+                <div class="mt-3">
+                    {% if product.old_price %}
+                    <span class="text-decoration-line-through text-muted fs-5">{{ "%.2f"|format(product.old_price) }}₽</span>
+                    <span class="text-danger fw-bold fs-2">{{ "%.2f"|format(product.price) }}₽</span>
+                    <span class="badge bg-danger ms-2">Скидка!</span>
+                    {% else %}
+                    <span class="fw-bold fs-2">{{ "%.2f"|format(product.price) }}₽</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-3">
+                    <p>Наличие: 
+                        {% if product.stock > 0 %}
+                        <span class="text-success">✅ В наличии ({{ product.stock }} шт.)</span>
+                        {% else %}
+                        <span class="text-danger">❌ Нет в наличии</span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                {% if current_user.is_authenticated and product.stock > 0 %}
+                <div class="d-grid gap-2 mt-3">
+                    <a href="/add_to_cart/{{ product.id }}" class="btn btn-success btn-lg">Добавить в корзину 🛒</a>
+                </div>
+                {% elif not current_user.is_authenticated %}
+                <div class="alert alert-warning mt-3">
+                    <a href="/login">Войдите</a> в аккаунт, чтобы купить этот товар
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recommended %}
+<div class="mt-5">
+    <h3>Вам также может понравиться</h3>
+    <div class="row mt-3">
+        {% for product in recommended %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>{{ product.name }}</h5>
+                    <p class="text-muted">{{ "%.2f"|format(product.price) }}₽</p>
+                    <a href="/product/{{ product.id }}" class="btn btn-sm btn-outline-primary">Посмотреть</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

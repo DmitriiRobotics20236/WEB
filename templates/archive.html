@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="alert alert-info">
+    <p>В этом разделе находятся товары, которые временно отсутствуют на складе. 
+    Оставьте заявку, и мы сообщим вам о поступлении!</p>
+</div>
+
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm bg-light">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted">{{ product.category }}</p>
+                <p class="card-text">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                <div class="mt-2">
+                    <span class="fw-bold">{{ "%.2f"|format(product.price) }}₽</span>
+                </div>
+                <div class="mt-2">
+                    <span class="badge bg-secondary">📦 Нет в наличии</span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <button class="btn btn-warning btn-sm w-100" onclick="alert('Спасибо! Мы сообщим о поступлении!')">
+                    Сообщить о поступлении
+                </button>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-success text-center">
+            <h3>Нет товаров в архиве</h3>
+            <p>Все товары в наличии! 🎉</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
