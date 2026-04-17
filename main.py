@@ -1,7 +1,15 @@
 import datetime
 import os
 
-from flask import (Flask, request, render_template, redirect, abort, jsonify, session, url_for)
+from flask import (
+    Flask,
+    request,
+    render_template,
+    redirect,
+    abort,
+    jsonify,
+    session,
+    url_for)
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 
@@ -35,7 +43,7 @@ def load_user(user_id):
 
 @app.errorhandler(404)
 def not_found(error):
-    if request.path.startswith("/api/"): # если это API — возвращаем JSON
+    if request.path.startswith("/api/"):  # если это API — возвращаем JSON
         return jsonify({
             "error": "Not found"
         }), 404
@@ -46,7 +54,8 @@ def not_found(error):
 @app.route("/")  # декоратор
 @app.route("/index")
 def index():
-    db_sess = db_session.create_session() # Получаем товары для рекламы (последние 4 товара со скидкой или новинки)
+    # Получаем товары для рекламы (последние 4 товара со скидкой или новинки)
+    db_sess = db_session.create_session()
     promo_products = db_sess.query(Product).filter(
         Product.is_on_sale == True
     ).limit(4).all()
@@ -56,7 +65,7 @@ def index():
             Product.created_date.desc()
         ).limit(4).all()
 
-    params = {"user": "Яндекс Лицей",
+    params = {"user": current_user,
               "title": "Главная - Магазин",
               "promo_products": promo_products}
     return render_template("index.html", **params)
@@ -67,13 +76,12 @@ def catalog():
     db_sess = db_session.create_session()
     products = db_sess.query(Product).all()
 
-
-    category = request.args.get('category') # Фильтрация по категории
+    category = request.args.get('category')  # Фильтрация по категории
     if category:
         products = [p for p in products if p.category == category]
 
-
-    categories = list(set([p.category for p in products if p.category]))   # Получаем уникальные категории
+    # Получаем уникальные категории
+    categories = list(set([p.category for p in products if p.category]))
 
     return render_template("catalog.html",
                            title="Каталог товаров",
@@ -89,7 +97,6 @@ def product_detail(product_id):
 
     if not product:
         abort(404)
-
 
     recommended = db_sess.query(Product).filter(  # Рекомендуемые товары (из той же категории)
         Product.category == product.category,
@@ -111,7 +118,6 @@ def add_to_cart(product_id):
     if not product:
         abort(404)
 
-
     cart_item = db_sess.query(CartItem).filter(   # Проверяем, есть ли уже этот товар в корзине
         CartItem.user_id == current_user.id,
         CartItem.product_id == product_id
@@ -128,7 +134,6 @@ def add_to_cart(product_id):
         db_sess.add(cart_item)
 
     db_sess.commit()
-
 
     cart_count = db_sess.query(CartItem).filter(   # Сохраняем количество товаров в корзине в сессию
         CartItem.user_id == current_user.id
@@ -174,7 +179,7 @@ def update_cart():
     db_sess.commit()
 
     cart_count = db_sess.query(CartItem).filter(
-    # Обновляем счетчик корзины
+        # Обновляем счетчик корзины
         CartItem.user_id == current_user.id
     ).count()
     session['cart_count'] = cart_count
@@ -207,23 +212,20 @@ def profile():
     form = ProfileForm()
     db_sess = db_session.create_session()
     user = db_sess.get(User, current_user.id)
-
+    params = {"title": "Личный кабинет", "form": form, "user": user}
     if form.validate_on_submit():
-        user.name = form.name.data
-        user.email = form.email.data
-        user.about = form.about.data
-        db_sess.commit()
-        return redirect(url_for('profile'))
-
-    # Заполняем форму текущими данными
+        if db_sess.query(User).filter(User.id != user.id,
+                                      User.email == form.email.data).first() is None:
+            user.name = form.name.data
+            user.email = form.email.data
+            user.about = form.about.data
+            db_sess.commit()
+            return redirect(url_for('profile'))
+        params["message"] = "Этот email занят"
     form.name.data = user.name
     form.email.data = user.email
     form.about.data = user.about
-
-    return render_template("profile.html",
-                           title="Личный кабинет",
-                           form=form,
-                           user=user)
+    return render_template("profile.html", **params)
 
 
 @app.route("/add_product", methods=["GET", "POST"])
@@ -287,7 +289,8 @@ def edit_news(id):
     if request.method == "GET":
         db_sess = db_session.create_session()
         news = (
-            db_sess.query(News).filter(News.id == id, News.user == current_user).first()
+            db_sess.query(News).filter(
+                News.id == id, News.user == current_user).first()
         )
         if news:
             form.title.data = news.title
@@ -298,7 +301,8 @@ def edit_news(id):
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         news = (
-            db_sess.query(News).filter(News.id == id, News.user == current_user).first()
+            db_sess.query(News).filter(
+                News.id == id, News.user == current_user).first()
         )
         if news:
             news.title = form.title.data
@@ -309,7 +313,8 @@ def edit_news(id):
             return redirect("/news")
         else:
             abort(404)
-    return render_template("add_news.html", title="Редактирование новости", form=form)
+    return render_template(
+        "add_news.html", title="Редактирование новости", form=form)
 
 
 @app.route("/add_news", methods=["GET", "POST"])
@@ -326,14 +331,16 @@ def add_news():
         db_sess.merge(current_user)
         db_sess.commit()
         return redirect("/news")
-    return render_template("add_news.html", title="Добавление новости", form=form)
+    return render_template(
+        "add_news.html", title="Добавление новости", form=form)
 
 
 @app.route("/news_del/<int:id>")
 @login_required
 def news_delete(id):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.id == id, News.user == current_user).first()
+    news = db_sess.query(News).filter(
+        News.id == id, News.user == current_user).first()
     if news:
         db_sess.delete(news)
         db_sess.commit()
@@ -361,7 +368,10 @@ def register():
                 message="Такой пользователь уже есть в базе",
                 form=form,
             )
-        user = User(name=form.name.data, email=form.email.data, about=form.about.data)
+        user = User(
+            name=form.name.data,
+            email=form.email.data,
+            about=form.about.data)
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
@@ -374,7 +384,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user = db_sess.query(User).filter(
+            User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
 

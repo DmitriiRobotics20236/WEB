@@ -5,7 +5,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Логин:',
+    email = StringField('Электронная почта:',
                            validators=[DataRequired('Заполните Ваше имя'),
                                        Email('Некорректный E-mail адрес')])
     password = PasswordField('Пароль:',

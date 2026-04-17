@@ -9,7 +9,7 @@
     <a href="/catalog" class="btn btn-light btn-lg">Перейти в каталог</a>
 </div>
 
-<h1 class="mb-4">Добро пожаловать, {{ user }}!</h1>
+<h1 class="mb-4">Добро пожаловать,{% if user.is_authenticated %} {{ user.name }}{% else %} Гость{% endif %}!</h1>
 
 {% if promo_products %}
 <div class="mb-5">
