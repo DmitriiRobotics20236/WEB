@@ -3,9 +3,8 @@
 {% block content %}
 <h1>{{ title }}</h1>
 
-<form method="post" class="card p-4" novalidate>
+<form method="post" enctype="multipart/form-data" class="card p-4" novalidate>
     {{ form.hidden_tag() }}
-    
     <div class="mb-3">
         {{ form.name.label(class="form-label") }}
         {{ form.name(class="form-control") }}
@@ -62,7 +61,13 @@
         {{ form.is_on_sale(class="form-check-input") }}
         {{ form.is_on_sale.label(class="form-check-label") }}
     </div>
-    
+    <div class="mb-3">
+        {{ form.image.label }}
+        {{ form.image(class="form-control") }}
+        {% for error in form.image.errors %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+    </div>
     {{ form.submit(class="btn btn-primary") }}
     <a href="/catalog" class="btn btn-secondary">Отмена</a>
 </form>

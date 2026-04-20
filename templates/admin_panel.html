@@ -1,0 +1,10 @@
+{% block a %}
+    <form method="post" class="card p-4" novalidate>
+    {{ form.hidden_tag() }}
+        {{ form.email.label }}
+        {{ form.email() }}
+        {{ form.money.label }}
+        {{ form.money() }}
+        {{ form.submit() }}
+    </form>
+{% endblock %}

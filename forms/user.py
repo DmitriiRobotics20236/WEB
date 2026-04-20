@@ -21,4 +21,5 @@ class RegisterForm(FlaskForm):
     name = StringField('Имя пользователя:',
                        validators=[DataRequired('Введите своё имя')])
     about = TextAreaField('Немного о себе:')
+    is_seller = BooleanField("Роль - продавец?")
     submit = SubmitField('Регистрация')

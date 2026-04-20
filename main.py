@@ -12,7 +12,7 @@ from flask import (
     url_for)
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
-
+from sqlalchemy import desc
 from data import db_session
 from data.news import News
 from data.users import User
@@ -23,13 +23,18 @@ from forms.news import NewsForm
 from forms.user import RegisterForm
 from forms.profile import ProfileForm
 from forms.product import ProductForm
+from forms.add_money import AddMoneyForm
+from forms.submit_form import SubmitBuyForm
 # для добавления APIs
 from apis.users_api import users_api
 from apis.news_api import news_api
+# for images
+from PIL import Image
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "just_simple_key"
 app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=365)
+ADMIN_EMAIL = "1@mail.ru"
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -38,7 +43,12 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
-    return db_sess.get(User, user_id)
+    temp = db_sess.get(User, user_id)
+    return temp
+
+@app.teardown_appcontext
+def shut_sess(exception=None):
+    db_session.create_session().remove()
 
 
 @app.errorhandler(404)
@@ -49,6 +59,15 @@ def not_found(error):
         }), 404
     # иначе обычная страница
     return render_template("404.html"), 404
+
+@app.errorhandler(403)
+def access_forbidden(error):
+    if request.path.startswith("/api/"):  # если это API — возвращаем JSON
+        return jsonify({
+            "error": "Access forbidden"
+        }), 403
+    # иначе обычная страница
+    return render_template("403.html"), 403
 
 
 @app.route("/")  # декоратор
@@ -65,7 +84,7 @@ def index():
             Product.created_date.desc()
         ).limit(4).all()
 
-    params = {"user": current_user,
+    params = {"current_user": current_user,
               "title": "Главная - Магазин",
               "promo_products": promo_products}
     return render_template("index.html", **params)
@@ -94,19 +113,16 @@ def catalog():
 def product_detail(product_id):
     db_sess = db_session.create_session()
     product = db_sess.get(Product, product_id)
-
     if not product:
         abort(404)
-
     recommended = db_sess.query(Product).filter(  # Рекомендуемые товары (из той же категории)
         Product.category == product.category,
         Product.id != product_id
     ).limit(3).all()
-
     return render_template("product_detail.html",
                            title=product.name,
                            product=product,
-                           recommended=recommended)
+                           recommended=recommended, url_for=url_for)
 
 
 @app.route("/add_to_cart/<int:product_id>")
@@ -132,38 +148,58 @@ def add_to_cart(product_id):
             quantity=1
         )
         db_sess.add(cart_item)
-
-    db_sess.commit()
-
     cart_count = db_sess.query(CartItem).filter(   # Сохраняем количество товаров в корзине в сессию
         CartItem.user_id == current_user.id
     ).count()
-    session['cart_count'] = cart_count
+    db_sess.commit()
 
+    session['cart_count'] = cart_count
     return redirect(url_for('cart'))
 
+def check_cart_counts():
+    db_sess = db_session.create_session()
+    for item in current_user.cart_items:
+        if item.quantity > item.product.stock:
+            if item.product_stock == 0:
+                db_sess.delete(item)
+            else:
+                item.quantity = item.product.stock
+    db_sess.commit()
 
-@app.route("/cart")
+
+@app.route("/cart", methods=["GET", "POST"])
 @login_required
 def cart():
+    params = {"title": "Корзина"}
+    form = SubmitBuyForm()
+    check_cart_counts()
     db_sess = db_session.create_session()
-    cart_items = db_sess.query(CartItem).filter(
-        CartItem.user_id == current_user.id
-    ).all()
-
+    if form.validate_on_submit():
+        summ = 0
+        for item in current_user.cart_items:
+            summ += item.quantity * item.product.price
+        if summ <= current_user.money:
+            current_user.money -= summ
+            for item in current_user.cart_items:
+                item.user.money += item.quantity * item.product.price
+                item.product.stock -= item.quantity
+                db_sess.delete(item)
+            params["message"] = "Покупка совершена успешно"
+            update_cart()
+        else:
+            params["message"] = "На балансе недостаточно денег для покупки"
+    cart_items = current_user.cart_items
     total = sum(item.product.price * item.quantity for item in cart_items)
-
+    db_sess.commit()
     return render_template("cart.html",
-                           title="Корзина",
                            cart_items=cart_items,
-                           total=total)
+                           total=total, form=form, **params)
 
 
 @app.route("/update_cart", methods=["POST"])
 @login_required
 def update_cart():
     db_sess = db_session.create_session()
-
     for key, value in request.form.items():
         if key.startswith('quantity_'):
             item_id = int(key.split('_')[1])
@@ -175,15 +211,12 @@ def update_cart():
                     cart_item.quantity = quantity
                 else:
                     db_sess.delete(cart_item)
-
-    db_sess.commit()
-
     cart_count = db_sess.query(CartItem).filter(
         # Обновляем счетчик корзины
         CartItem.user_id == current_user.id
     ).count()
+    db_sess.commit()
     session['cart_count'] = cart_count
-
     return redirect(url_for('cart'))
 
 
@@ -195,15 +228,16 @@ def remove_from_cart(item_id):
 
     if cart_item and cart_item.user_id == current_user.id:
         db_sess.delete(cart_item)
-        db_sess.commit()
 
         # Обновляем счетчик корзины
         cart_count = db_sess.query(CartItem).filter(
             CartItem.user_id == current_user.id
         ).count()
         session['cart_count'] = cart_count
-
+    db_sess.commit()
     return redirect(url_for('cart'))
+
+
 
 
 @app.route("/profile", methods=["GET", "POST"])
@@ -212,7 +246,7 @@ def profile():
     form = ProfileForm()
     db_sess = db_session.create_session()
     user = db_sess.get(User, current_user.id)
-    params = {"title": "Личный кабинет", "form": form, "user": user}
+    params = {"title": "Личный кабинет", "form": form, "user": user, "money": str(user.money)}
     if form.validate_on_submit():
         if db_sess.query(User).filter(User.id != user.id,
                                       User.email == form.email.data).first() is None:
@@ -231,30 +265,32 @@ def profile():
 @app.route("/add_product", methods=["GET", "POST"])
 @login_required
 def add_product():
-    # Проверка на администратора (можно сделать по email или специальному полю)
-    if current_user.email != "admin@example.com":
-        abort(403)
-
-    form = ProductForm()
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        product = Product()
-        product.name = form.name.data
-        product.description = form.description.data
-        product.price = form.price.data
-        product.old_price = form.old_price.data
-        product.category = form.category.data
-        product.stock = form.stock.data
-        product.is_on_sale = form.is_on_sale.data
-
-        db_sess.add(product)
-        db_sess.commit()
-
-        return redirect(url_for('catalog'))
-
-    return render_template("add_product.html",
+    if current_user.is_seller:
+        form = ProductForm()
+        if form.validate_on_submit():
+            db_sess = db_session.create_session()
+            product = Product()
+            product.name = form.name.data
+            product.description = form.description.data
+            product.price = form.price.data
+            product.old_price = form.old_price.data
+            product.category = form.category.data
+            product.stock = form.stock.data
+            product.is_on_sale = form.is_on_sale.data
+            product.user_id = current_user.id
+            #image place and redact
+            f = Image.open(form.image.data).resize((400, 400))
+            fname = (str(db_sess.query(Product).order_by(desc(Product.id)).first().id + 1) +
+                     "." + form.image.data.filename.split(".")[-1])
+            f.save(url_for("static", filename=f"product_img/{fname}").removeprefix("/"))
+            product.image_url = fname
+            db_sess.add(product)
+            db_sess.commit()
+            return redirect(url_for('catalog'))
+        return render_template("add_product.html",
                            title="Добавить товар",
                            form=form)
+    return abort(403)
 
 
 @app.route("/archive")
@@ -279,6 +315,7 @@ def all_news():
         )
     else:
         all_news = db_sess.query(News).filter(News.is_private != True).all()
+
     return render_template("news.html", title="Список новостей", news=all_news)
 
 
@@ -286,35 +323,35 @@ def all_news():
 @login_required
 def edit_news(id):
     form = NewsForm()
-    if request.method == "GET":
-        db_sess = db_session.create_session()
-        news = (
+    with db_session.create_session() as db_sess:
+        if request.method == "GET":
+            news = (
             db_sess.query(News).filter(
                 News.id == id, News.user == current_user).first()
-        )
-        if news:
-            form.title.data = news.title
-            form.content.data = news.content
-            form.is_private.data = news.is_private
-        else:
-            abort(404)
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        news = (
+            )
+            if news:
+                form.title.data = news.title
+                form.content.data = news.content
+                form.is_private.data = news.is_private
+            else:
+                abort(404)
+        if form.validate_on_submit():
+            db_sess = db_session.create_session()
+            news = (
             db_sess.query(News).filter(
                 News.id == id, News.user == current_user).first()
-        )
-        if news:
-            news.title = form.title.data
-            news.content = form.content.data
-            news.is_private = form.is_private.data
-            news.created_date = datetime.datetime.now()
-            db_sess.commit()
-            return redirect("/news")
-        else:
-            abort(404)
-    return render_template(
-        "add_news.html", title="Редактирование новости", form=form)
+            )
+            if news:
+                news.title = form.title.data
+                news.content = form.content.data
+                news.is_private = form.is_private.data
+                news.created_date = datetime.datetime.now()
+                db_sess.commit()
+                return redirect("/news")
+            else:
+                abort(404)
+        return render_template(
+            "add_news.html", title="Редактирование новости", form=form)
 
 
 @app.route("/add_news", methods=["GET", "POST"])
@@ -330,6 +367,7 @@ def add_news():
         current_user.news.append(news)
         db_sess.merge(current_user)
         db_sess.commit()
+
         return redirect("/news")
     return render_template(
         "add_news.html", title="Добавление новости", form=form)
@@ -344,7 +382,9 @@ def news_delete(id):
     if news:
         db_sess.delete(news)
         db_sess.commit()
+
     else:
+
         abort(404)
     return redirect("/news")
 
@@ -369,12 +409,12 @@ def register():
                 form=form,
             )
         user = User(
-            name=form.name.data,
-            email=form.email.data,
-            about=form.about.data)
+            name=form.name.data, email=form.email.data, about=form.about.data, is_seller=form.is_seller.data
+            )
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
+
         return redirect("/login")
     return render_template("register.html", title="Регистрация", form=form)
 
@@ -388,15 +428,14 @@ def login():
             User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
-
             # Инициализируем корзину при входе
-            db_sess = db_session.create_session()
             cart_count = db_sess.query(CartItem).filter(
                 CartItem.user_id == user.id
             ).count()
             session['cart_count'] = cart_count
 
             return redirect("/catalog")
+
     return render_template("login.html", title="Авторизация", f=form)
 
 
@@ -425,40 +464,31 @@ def inject_cart_count():
         return {'cart_count': session.get('cart_count', 0)}
     return {'cart_count': 0}
 
+@app.route("/add_money", methods=["GET", "POST"])
+def add_money():
+    if current_user.is_authenticated and current_user.email == ADMIN_EMAIL:
+        form = AddMoneyForm()
+        params = {"title": "Money adding"}
+        if form.validate_on_submit():
+            db_sess = db_session.create_session()
+            redacted_user = db_sess.query(User).filter(form.email.data == User.email).first()
+            if redacted_user is not None:
+                redacted_user.money += form.money.data
+                db_sess.commit()
+
+                return "Success"
+            params["message"] = "This user is not exist"
+
+        return render_template("admin_panel.html", **params, form=form)
+
+
+
 
 if __name__ == "__main__":
     # Создаем папку для базы данных если её нет
     if not os.path.exists("db"):
         os.makedirs("db")
-
     db_session.global_init("db/blogs.sqlite")
-
-    # Добавляем тестовые товары если база пуста
-    db_sess = db_session.create_session()
-    if db_sess.query(Product).count() == 0:
-        test_products = [
-            Product(name="Смартфон XYZ", description="Мощный смартфон с отличной камерой и большим экраном",
-                    price=29999, old_price=34999, category="Электроника", stock=15, is_on_sale=True),
-            Product(name="Ноутбук Pro", description="Идеален для работы и игр, мощный процессор и видеокарта",
-                    price=59999, old_price=69999, category="Электроника", stock=8, is_on_sale=True),
-            Product(name="Беспроводные наушники", description="Отличное качество звука с шумоподавлением",
-                    price=4999, category="Аксессуары", stock=25),
-            Product(name="Футболка хлопковая", description="100% хлопок, высокое качество, разные размеры",
-                    price=1299, category="Одежда", stock=50, is_on_sale=True),
-            Product(name="Джинсы классические", description="Удобные и стильные, подойдут для любого случая",
-                    price=3499, category="Одежда", stock=30),
-            Product(name="Кроссовки спортивные", description="Для активного отдыха и занятий спортом",
-                    price=5999, old_price=7999, category="Обувь", stock=12, is_on_sale=True),
-            Product(name="Книга 'Python для начинающих'", description="Лучший учебник по Python с примерами",
-                    price=899, category="Книги", stock=45),
-            Product(name="Кофеварка автоматическая", description="Ваш идеальный утренний кофе с таймером",
-                    price=15999, category="Бытовая техника", stock=5),
-        ]
-
-        for product in test_products:
-            db_sess.add(product)
-        db_sess.commit()
-
     app.register_blueprint(users_api)
     app.register_blueprint(news_api)
     app.run(host="127.0.0.1", port=5000, debug=True)

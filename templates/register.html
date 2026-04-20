@@ -50,6 +50,10 @@
             </p>
     {% endfor %}
     </p>
+    <p>
+        {{form.is_seller.label}}<br>
+        {{form.is_seller()}}<br>
+    </p>
     <p>{{form.submit(class="btn btn-primary")}}</p>
 </form>
 {% endblock %}

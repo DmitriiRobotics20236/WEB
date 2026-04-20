@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, scoped_session
 from sqlalchemy import event
 
 SqlAlchemyBase = orm.declarative_base()
@@ -22,7 +22,7 @@ def global_init(db_file):
 
     engine = sa.create_engine(conn_str, echo=False, pool_size=10, max_overflow=20, pool_recycle=1800,
                               pool_pre_ping=True)
-    __factory = orm.sessionmaker(bind=engine)
+    __factory = scoped_session(orm.sessionmaker(bind=engine))
 
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -36,6 +36,6 @@ def global_init(db_file):
 
 def create_session() -> Session:
     global __factory
-    return __factory()
+    return __factory
 
   # Подключение к БД

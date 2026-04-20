@@ -19,6 +19,9 @@ class Product(SqlAlchemyBase):
     is_on_sale = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
+    user = orm.relationship("User")
+
 
     def __repr__(self):
         return f'<Product> {self.name} - {self.price}₽'

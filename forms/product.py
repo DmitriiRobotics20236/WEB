@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, BooleanField, SubmitField, TextAreaField, IntegerField
+from flask_wtf.file import FileRequired
+from wtforms import StringField, FileField, FloatField, BooleanField, SubmitField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 
@@ -17,4 +18,5 @@ class ProductForm(FlaskForm):
                          validators=[DataRequired(),
                                      NumberRange(min=0)])
     is_on_sale = BooleanField('Товар со скидкой')
+    image = FileField("Загрузить изображение(400x400)", validators=[FileRequired(message="Загрузите изображение")])
     submit = SubmitField('Добавить товар')

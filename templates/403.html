@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h1>404</h1>
+    <p class="lead">Доступ к странице запрещён</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+        На главную
+    </a>
+</div>
+{% endblock %}

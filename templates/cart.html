@@ -4,7 +4,7 @@
 <h1>{{ title }}</h1>
 
 {% if cart_items %}
-<form method="post" action="/update_cart">
+
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
@@ -44,12 +44,13 @@
             </tfoot>
         </table>
     </div>
-    
+
     <div class="d-flex justify-content-between mt-3">
         <a href="/catalog" class="btn btn-secondary">Продолжить покупки</a>
         <div>
-            <button type="submit" class="btn btn-primary">Обновить корзину</button>
-            <button type="button" class="btn btn-success" onclick="alert('Спасибо за заказ! Скоро с вами свяжется менеджер.')">Оформить заказ</button>
+            <form style="display: inline" method="post" action="/update_cart">
+                <button type="submit" class="btn btn-primary">Обновить корзину</button></form>
+            <form method="post" style="display: inline">{{ form.hidden_tag() }}{{ form.submit(class="btn btn-success", type="submit") }}</form>
         </div>
     </div>
 </form>
