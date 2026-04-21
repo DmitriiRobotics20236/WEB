@@ -20,7 +20,7 @@ class User(SqlAlchemyBase, UserMixin):
                                      default=datetime.datetime.now)
     news = orm.relationship("News", back_populates='user')
     cart_items = orm.relationship("CartItem", back_populates='user')
-    money = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=0)
+    money = sqlalchemy.Column(sqlalchemy.DECIMAL, nullable=False, default=0)
     products = orm.relationship("Product", back_populates="user")
     is_seller = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
 

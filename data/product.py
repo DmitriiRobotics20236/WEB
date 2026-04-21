@@ -26,4 +26,5 @@ class Product(SqlAlchemyBase):
     def __repr__(self):
         return f'<Product> {self.name} - {self.price}₽'
 
+
     # Модель товара (название, цена, описание)

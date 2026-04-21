@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired
-from wtforms import StringField, FileField, FloatField, BooleanField, SubmitField, TextAreaField, IntegerField
+from wtforms import StringField, FileField, FloatField, BooleanField, SubmitField, TextAreaField, IntegerField, \
+    DecimalField
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 
@@ -8,10 +9,10 @@ class ProductForm(FlaskForm):
     name = StringField('Название товара:',
                        validators=[DataRequired('Введите название')])
     description = TextAreaField('Описание:')
-    price = FloatField('Цена:',
+    price = DecimalField('Цена:',
                        validators=[DataRequired('Введите цену'),
                                    NumberRange(min=0)])
-    old_price = FloatField('Старая цена (для скидки):',
+    old_price = DecimalField('Старая цена (для скидки):',
                            validators=[Optional()])
     category = StringField('Категория:')
     stock = IntegerField('Количество на складе:',

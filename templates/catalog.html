@@ -10,7 +10,16 @@
     <a href="/catalog?category={{ cat }}" class="btn {% if current_category == cat %}btn-primary{% else %}btn-outline-secondary{% endif %} me-2">{{ cat }}</a>
     {% endfor %}
 </div>
-
+<form method="post" class="mb-4">
+    {{ form.hidden_tag() }}
+    {{ form.price.label(class="form-label") }}
+    {{ form.price(class="form-select form-floating row mb-3") }}
+    {{ form.min_price.label() }}
+    {{ form.min_price(class="col me-5") }}
+    {{ form.max_price.label() }}
+    {{ form.max_price(class="col me-5") }}
+    {{ form.submit(class="btn btn-primary form-floating row mb-3 me-5") }}
+</form>
 <div class="row">
     {% for product in products %}
     <div class="col-md-4 mb-4">

@@ -1,5 +1,6 @@
 import datetime
 import os
+from decimal import Decimal
 
 from flask import (
     Flask,
@@ -25,6 +26,7 @@ from forms.profile import ProfileForm
 from forms.product import ProductForm
 from forms.add_money import AddMoneyForm
 from forms.submit_form import SubmitBuyForm
+from forms.catalog_sort import CatalogSortForm
 # для добавления APIs
 from apis.users_api import users_api
 from apis.news_api import news_api
@@ -90,23 +92,34 @@ def index():
     return render_template("index.html", **params)
 
 
-@app.route("/catalog")
+@app.route("/catalog", methods=["GET", "POST"])
 def catalog():
+    form = CatalogSortForm()
     db_sess = db_session.create_session()
-    products = db_sess.query(Product).all()
-
+    products = db_sess.query(Product).order_by(Product.price)
+    print(form.min_price.data)
+    if form.validate_on_submit():
+        if form.min_price.data is None:
+            form.min_price.data = products.first().price
+        if form.max_price.data is None:
+            form.max_price.data = products.all()[-1].price
+        products = products.filter(form.max_price.data >= Product.price, Product.price >= form.min_price.data).all()
+        if form.price.data == ">":
+            products.reverse()
+    else:
+        products = products.all()
+        form.min_price.data = products[0].price
+        form.max_price.data = products[-1].price
     category = request.args.get('category')  # Фильтрация по категории
     if category:
         products = [p for p in products if p.category == category]
-
     # Получаем уникальные категории
     categories = list(set([p.category for p in products if p.category]))
-
     return render_template("catalog.html",
                            title="Каталог товаров",
                            products=products,
                            categories=categories,
-                           current_category=category)
+                           current_category=category, form=form)
 
 
 @app.route("/product/<int:product_id>")
@@ -175,7 +188,7 @@ def cart():
     check_cart_counts()
     db_sess = db_session.create_session()
     if form.validate_on_submit():
-        summ = 0
+        summ = Decimal("0")
         for item in current_user.cart_items:
             summ += item.quantity * item.product.price
         if summ <= current_user.money:
