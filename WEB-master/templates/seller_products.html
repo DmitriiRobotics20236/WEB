@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div class="section-title mb-0">📋 Мои товары</div>
+  <a href="/seller/add_product" class="btn-cart" style="padding:10px 22px; font-size:0.82rem;">➕ Добавить товар</a>
+</div>
+
+{% if products %}
+<div class="info-card" style="padding:0; overflow:hidden;">
+  <table class="table mb-0" style="width:100%;">
+    <thead style="background:var(--surface-2);">
+      <tr>
+        <th style="padding:14px 20px; font-family:'Unbounded',sans-serif; font-size:0.7rem; color:var(--text-muted);">ТОВАР</th>
+        <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.7rem; color:var(--text-muted);">КАТЕГОРИЯ</th>
+        <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.7rem; color:var(--text-muted);">ЦЕНА</th>
+        <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.7rem; color:var(--text-muted);">ОСТАТОК</th>
+        <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.7rem; color:var(--text-muted);">СТАТУС</th>
+        <th style="padding:14px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr style="border-top:1px solid var(--border);">
+        <td style="padding:14px 20px; vertical-align:middle;">
+          <div style="font-weight:600; font-size:0.85rem;">{{ product.name }}</div>
+          <div style="font-size:0.72rem; color:var(--text-muted);">{{ product.description[:60] }}{% if product.description|length > 60 %}…{% endif %}</div>
+        </td>
+        <td style="padding:14px; vertical-align:middle;">
+          <span class="product-category-tag">{{ product.category }}</span>
+        </td>
+        <td style="padding:14px; vertical-align:middle;">
+          {% if product.old_price %}
+          <div class="price-current" style="font-size:0.9rem;">{{ "%.0f"|format(product.price) }}₽</div>
+          <div class="price-old">{{ "%.0f"|format(product.old_price) }}₽</div>
+          {% else %}
+          <div class="price-no-sale" style="font-size:0.9rem;">{{ "%.0f"|format(product.price) }}₽</div>
+          {% endif %}
+        </td>
+        <td style="padding:14px; vertical-align:middle; font-size:0.85rem;">
+          {% if product.stock == 0 %}
+          <span class="stock-low">0 шт.</span>
+          {% elif product.stock <= 5 %}
+          <span class="stock-low">{{ product.stock }} шт.</span>
+          {% else %}
+          <span class="stock-ok">{{ product.stock }} шт.</span>
+          {% endif %}
+        </td>
+        <td style="padding:14px; vertical-align:middle;">
+          {% if product.is_on_sale %}
+          <span class="discount-pct">🔥 Акция</span>
+          {% else %}
+          <span style="font-size:0.72rem; color:var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+        <td style="padding:14px; vertical-align:middle;">
+          <div style="display:flex; gap:6px;">
+            <a href="/seller/edit_product/{{ product.id }}" class="btn-detail" style="padding:7px 14px; font-size:0.75rem;">✏️</a>
+            <a href="/seller/delete_product/{{ product.id }}"
+               onclick="return confirm('Удалить «{{ product.name }}»?')"
+               style="padding:7px 14px; font-size:0.75rem; border-radius:var(--radius-sm); border:1.5px solid var(--accent); color:var(--accent); display:inline-block; transition:.2s;">🗑️</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="info-card text-center" style="padding:60px 24px;">
+  <div style="font-size:4rem; margin-bottom:16px;">📦</div>
+  <h3 style="font-size:1rem; margin-bottom:8px;">У вас пока нет товаров</h3>
+  <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:24px;">Добавьте первый товар, чтобы начать продавать!</p>
+  <a href="/seller/add_product" class="btn-cart" style="padding:12px 28px;">Добавить товар</a>
+</div>
+{% endif %}
+{% endblock %}

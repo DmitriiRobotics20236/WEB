@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if ads %}
+<div class="row g-3 mb-4">
+  {% for ad in ads %}
+  <div class="col-md-4">
+    <a href="{{ ad.link or '/catalog' }}" style="text-decoration:none; display:block;">
+      <div style="background:var(--primary); border-radius:var(--radius); padding:22px; position:relative; overflow:hidden; transition:.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+        <div style="position:absolute; top:-30px; right:-30px; width:120px; height:120px; background:rgba(233,69,96,.15); border-radius:50%;"></div>
+        {% if ad.badge %}
+        <span style="display:inline-block; background:var(--sale-gradient); color:#fff; font-family:'Unbounded',sans-serif; font-size:0.6rem; font-weight:700; padding:4px 10px; border-radius:20px; margin-bottom:10px; position:relative; z-index:1;">{{ ad.badge }}</span>
+        {% endif %}
+        <div style="font-family:'Unbounded',sans-serif; font-size:0.88rem; font-weight:600; color:#fff; margin-bottom:6px; position:relative; z-index:1;">{{ ad.title }}</div>
+        <div style="font-size:0.8rem; color:rgba(255,255,255,.6); position:relative; z-index:1;">{{ ad.text }}</div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="sale-hero">
+  <div class="hero-pill">
+    <span class="dot"></span>
+    МЕГА-РАСПРОДАЖА АКТИВНА
+  </div>
+  <h1>Товары для офиса<br>со скидкой до 50%!</h1>
+  <p class="hero-sub">Только до конца месяца — лучшие цены на технику, мебель и аксессуары для офиса.</p>
+  <a href="/catalog?sort=sale" class="btn-hero">Смотреть акции →</a>
+
+  <div class="sale-countdown">
+    <span class="countdown-label">До конца акции:</span>
+    <div class="countdown-block">
+      <span class="countdown-num" id="cd-days">--</span>
+      <span class="countdown-unit">дней</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-block">
+      <span class="countdown-num" id="cd-hours">--</span>
+      <span class="countdown-unit">часов</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-block">
+      <span class="countdown-num" id="cd-mins">--</span>
+      <span class="countdown-unit">минут</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-block">
+      <span class="countdown-num" id="cd-secs">--</span>
+      <span class="countdown-unit">секунд</span>
+    </div>
+  </div>
+</div>
+
+{% if promo_products %}
+<div class="mb-5">
+  <div class="section-title">✨ Товары со скидкой <span class="title-badge">ГОРЯЧИЕ ПРЕДЛОЖЕНИЯ</span></div>
+  <div class="row g-3">
+    {% for product in promo_products %}
+    <div class="col-md-3 col-sm-6">
+      <div class="product-card">
+        <div class="product-card-img">
+          {% if product.category == "Электроника" %}📱
+          {% elif product.category == "Одежда" %}👕
+          {% elif product.category == "Обувь" %}👟
+          {% elif product.category == "Аксессуары" %}🎧
+          {% elif product.category == "Книги" %}📚
+          {% elif product.category == "Бытовая техника" %}☕
+          {% else %}📦{% endif %}
+          {% if product.is_on_sale %}
+          <span class="sale-badge">
+            {% if product.old_price %}-{{ ((product.old_price - product.price) / product.old_price * 100)|int }}%
+            {% else %}🔥 SALE{% endif %}
+          </span>
+          {% endif %}
+        </div>
+        <div class="product-card-body">
+          <span class="product-category-tag">{{ product.category }}</span>
+          <div class="product-name">{{ product.name }}</div>
+          <div class="product-desc">{{ product.description[:80] }}{% if product.description|length > 80 %}…{% endif %}</div>
+          <div class="product-pricing">
+            {% if product.old_price %}
+            <span class="price-current">{{ "%.0f"|format(product.price) }}₽</span>
+            <span class="price-old">{{ "%.0f"|format(product.old_price) }}₽</span>
+            <span class="discount-pct">-{{ ((product.old_price - product.price) / product.old_price * 100)|int }}%</span>
+            {% else %}
+            <span class="price-no-sale">{{ "%.0f"|format(product.price) }}₽</span>
+            {% endif %}
+          </div>
+          {% if product.stock <= 5 and product.stock > 0 %}
+          <div class="stock-low">⚡ Осталось {{ product.stock }} шт.</div>
+          {% elif product.stock > 5 %}
+          <div class="stock-ok">✓ В наличии</div>
+          {% endif %}
+        </div>
+        <div class="product-card-footer">
+          <a href="/product/{{ product.id }}" class="btn-detail">Подробнее</a>
+          {% if current_user.is_authenticated and current_user.user_type == 'buyer' and product.stock > 0 %}
+          <a href="/add_to_cart/{{ product.id }}" class="btn-cart">В корзину 🛒</a>
+          {% elif not current_user.is_authenticated %}
+          <a href="/login" class="btn-login-hint">Войти для покупки</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mt-1">
+  <div class="col-md-6">
+    <div class="info-card">
+      <h3>🌟 Почему выбирают нас?</h3>
+      <ul>
+        <li>✅ Только сертифицированные офисные товары</li>
+        <li>✅ Быстрая доставка — от 1 дня</li>
+        <li>✅ Гарантия возврата 30 дней</li>
+        <li>✅ Поддержка 24/7 для корпоративных клиентов</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="promo-week-card">
+      <h3>📢 Акция недели!</h3>
+      <p class="mt-2">При заказе от <strong>5 000₽</strong> — бесплатная доставка!</p>
+      <p>Торопитесь, предложение ограничено.</p>
+      <a href="/catalog" class="btn-promo">Выбрать товары →</a>
+    </div>
+  </div>
+</div>
+
+{% if current_user.is_authenticated %}
+<div class="user-alert logged-in mt-4">
+  <p>👋 Привет, <strong>{{ current_user.name }}</strong>!
+    {% if current_user.user_type == 'buyer' %}Ваш баланс: <strong>{{ "%.2f"|format(current_user.balance) }}₽</strong>{% endif %}
+  </p>
+  <p>
+    {% if current_user.user_type == 'buyer' %}
+    Перейдите в <a href="/catalog" style="color:var(--accent);font-weight:600;">каталог</a> или проверьте <a href="/orders" style="color:var(--accent);font-weight:600;">свои заказы</a>.
+    {% else %}
+    Управляйте <a href="/seller/products" style="color:var(--accent);font-weight:600;">своими товарами</a> или <a href="/seller/add_product" style="color:var(--accent);font-weight:600;">добавьте новый</a>.
+    {% endif %}
+  </p>
+</div>
+{% else %}
+<div class="user-alert guest mt-4">
+  <p>🎉 <strong>Новым покупателям — доступен демо-баланс для тестовых заказов!</strong></p>
+  <p>Зарегистрируйтесь сейчас, чтобы начать покупки.</p>
+  <a href="/register" class="btn-promo">Зарегистрироваться →</a>
+</div>
+{% endif %}
+
+<script>
+(function() {
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    const diff = end - new Date();
+    if (diff <= 0) return;
+    document.getElementById('cd-days').textContent = pad(Math.floor(diff / 86400000));
+    document.getElementById('cd-hours').textContent = pad(Math.floor((diff % 86400000) / 3600000));
+    document.getElementById('cd-mins').textContent = pad(Math.floor((diff % 3600000) / 60000));
+    document.getElementById('cd-secs').textContent = pad(Math.floor((diff % 60000) / 1000));
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+{% endblock %}

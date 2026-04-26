@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title">👤 Личный кабинет</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="info-card text-center" style="padding:32px;">
+      <div style="font-size:4rem; margin-bottom:12px;">
+        {% if user.user_type == 'seller' %}🏪{% else %}🛒{% endif %}
+      </div>
+      <div style="font-family:'Unbounded',sans-serif; font-size:1rem; font-weight:600; margin-bottom:4px;">{{ user.name }}</div>
+      <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:12px;">{{ user.email }}</div>
+      <div class="product-category-tag">
+        {% if user.user_type == 'seller' %}Продавец{% else %}Покупатель{% endif %}
+      </div>
+      {% if user.user_type == 'buyer' %}
+      <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg,#f0fdf4,#dcfce7); border-radius:var(--radius-sm); border-left:4px solid #22c55e;">
+        <div style="font-size:0.72rem; color:#16a34a; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px;">Баланс</div>
+        <div style="font-family:'Unbounded',sans-serif; font-size:1.4rem; font-weight:700; color:#15803d;">{{ "%.2f"|format(user.balance) }}₽</div>
+      </div>
+      {% endif %}
+      <div style="margin-top:12px; font-size:0.75rem; color:var(--text-muted);">
+        Зарегистрирован {{ user.created_date.strftime('%d.%m.%Y') }}
+      </div>
+      {% if user.about %}
+      <div style="margin-top:14px; font-size:0.82rem; color:var(--text); line-height:1.5;">{{ user.about }}</div>
+      {% endif %}
+    </div>
+
+    {% if user.user_type == 'buyer' %}
+    <div class="info-card mt-3">
+      <h3 style="font-size:0.9rem;">🚀 Быстрые действия</h3>
+      <div class="d-flex flex-column gap-2 mt-2">
+        <a href="/catalog" class="btn-detail" style="padding:10px; text-align:center;">🛍️ Перейти в каталог</a>
+        <a href="/favorites" class="btn-detail" style="padding:10px; text-align:center;">❤️ Избранное</a>
+        <a href="/orders" class="btn-detail" style="padding:10px; text-align:center;">📦 Мои заказы</a>
+        <a href="/cart" class="btn-detail" style="padding:10px; text-align:center;">🛒 Корзина</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="info-card mt-3">
+      <h3 style="font-size:0.9rem;">🚀 Быстрые действия</h3>
+      <div class="d-flex flex-column gap-2 mt-2">
+        <a href="/seller/products" class="btn-detail" style="padding:10px; text-align:center;">📋 Мои товары</a>
+        <a href="/seller/add_product" class="btn-cart" style="padding:10px; text-align:center; display:block;">➕ Добавить товар</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-8">
+    <div class="info-card mb-3">
+      <h3 style="font-size:0.9rem; margin-bottom:18px;">✏️ Редактировать профиль</h3>
+      {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+          {{ form.name.label(class="form-label", style="font-size:.85rem;") }}
+          {{ form.name(class="form-control") }}
+          {% for e in form.name.errors %}<div class="alert alert-danger mt-1 py-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          {{ form.email.label(class="form-label", style="font-size:.85rem;") }}
+          {{ form.email(class="form-control") }}
+          {% for e in form.email.errors %}<div class="alert alert-danger mt-1 py-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          {{ form.about.label(class="form-label", style="font-size:.85rem;") }}
+          {{ form.about(class="form-control", rows=3) }}
+        </div>
+        {{ form.submit(class="btn-cart", style="padding:10px 24px;") }}
+      </form>
+    </div>
+
+    <div class="info-card">
+      <h3 style="font-size:0.9rem; margin-bottom:18px;">🔒 Изменить пароль</h3>
+      {% if pwd_error %}<div class="alert alert-danger">{{ pwd_error }}</div>{% endif %}
+      {% if pwd_success %}<div class="alert alert-success">{{ pwd_success }}</div>{% endif %}
+      <form method="post" novalidate>
+        {{ pwd_form.hidden_tag() }}
+        <div class="mb-3">
+          {{ pwd_form.old_password.label(class="form-label", style="font-size:.85rem;") }}
+          {{ pwd_form.old_password(class="form-control") }}
+          {% for e in pwd_form.old_password.errors %}<div class="alert alert-danger mt-1 py-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          {{ pwd_form.new_password.label(class="form-label", style="font-size:.85rem;") }}
+          {{ pwd_form.new_password(class="form-control") }}
+          {% for e in pwd_form.new_password.errors %}<div class="alert alert-danger mt-1 py-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          {{ pwd_form.new_password_again.label(class="form-label", style="font-size:.85rem;") }}
+          {{ pwd_form.new_password_again(class="form-control") }}
+        </div>
+        {{ pwd_form.submit_password(class="btn btn-secondary") }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

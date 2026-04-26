@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title">
+  🛍️ Каталог товаров
+  {% set sale_count = products | selectattr('is_on_sale') | list | length %}
+  {% if sale_count > 0 %}
+  <span class="title-badge">{{ sale_count }} со скидкой</span>
+  {% endif %}
+</div>
+
+<form method="get" action="/catalog" style="margin-bottom:22px;">
+  <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+    <div style="flex:1; min-width:200px;">
+      <input type="text" name="search" value="{{ current_search }}"
+             placeholder="🔍 Поиск по названию..."
+             style="width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Onest',sans-serif; font-size:0.88rem; outline:none;">
+    </div>
+    <div>
+      <select name="sort" style="padding:10px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Onest',sans-serif; font-size:0.88rem;">
+        <option value="" {% if current_sort == '' %}selected{% endif %}>Сначала новые</option>
+        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Цена ↑</option>
+        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Цена ↓</option>
+        <option value="sale" {% if current_sort == 'sale' %}selected{% endif %}>🔥 Только акции</option>
+      </select>
+    </div>
+    <button type="submit" class="btn-cart" style="padding:10px 20px;">Найти</button>
+    {% if current_search or current_sort or current_category %}
+    <a href="/catalog" class="btn-detail" style="padding:10px 16px;">✕ Сбросить</a>
+    {% endif %}
+  </div>
+</form>
+
+<div class="category-filters">
+  <a href="/catalog{% if current_search %}?search={{ current_search }}{% endif %}" class="cat-btn {% if not current_category %}active{% endif %}">Все</a>
+  {% for cat in categories %}
+  <a href="/catalog?category={{ cat }}{% if current_search %}&search={{ current_search }}{% endif %}" class="cat-btn {% if current_category == cat %}active{% endif %}">{{ cat }}</a>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  {% for product in products %}
+  <div class="col-md-4 col-sm-6">
+    <div class="product-card">
+      <div class="product-card-img">
+        {% if product.category == "Электроника" %}📱
+        {% elif product.category == "Одежда" %}👕
+        {% elif product.category == "Обувь" %}👟
+        {% elif product.category == "Аксессуары" %}🎧
+        {% elif product.category == "Книги" %}📚
+        {% elif product.category == "Бытовая техника" %}☕
+        {% else %}📦{% endif %}
+        {% if product.is_on_sale %}
+        <span class="sale-badge">
+          {% if product.old_price %}-{{ ((product.old_price - product.price) / product.old_price * 100)|int }}%
+          {% else %}🔥 SALE{% endif %}
+        </span>
+        {% endif %}
+        {% if current_user.is_authenticated and current_user.user_type == 'buyer' %}
+        <a href="/toggle_favorite/{{ product.id }}?next={{ request.url }}"
+           style="position:absolute; top:12px; right:12px; font-size:1.2rem; text-decoration:none; z-index:2;"
+           title="{% if product.id in favorite_ids %}Убрать из избранного{% else %}В избранное{% endif %}">
+          {% if product.id in favorite_ids %}❤️{% else %}🤍{% endif %}
+        </a>
+        {% endif %}
+      </div>
+      <div class="product-card-body">
+        <span class="product-category-tag">{{ product.category }}</span>
+        <div class="product-name">{{ product.name }}</div>
+        <div class="product-desc">{{ product.description[:100] }}{% if product.description|length > 100 %}…{% endif %}</div>
+        <div class="product-pricing">
+          {% if product.old_price %}
+          <span class="price-current">{{ "%.0f"|format(product.price) }}₽</span>
+          <span class="price-old">{{ "%.0f"|format(product.old_price) }}₽</span>
+          <span class="discount-pct">-{{ ((product.old_price - product.price) / product.old_price * 100)|int }}%</span>
+          {% else %}
+          <span class="price-no-sale">{{ "%.0f"|format(product.price) }}₽</span>
+          {% endif %}
+        </div>
+        {% if product.stock == 0 %}
+        <div class="stock-low">❌ Нет в наличии</div>
+        {% elif product.stock <= 5 %}
+        <div class="stock-low">⚡ Осталось {{ product.stock }} шт.</div>
+        {% else %}
+        <div class="stock-ok">✓ В наличии ({{ product.stock }} шт.)</div>
+        {% endif %}
+      </div>
+      <div class="product-card-footer">
+        <a href="/product/{{ product.id }}" class="btn-detail">Подробнее</a>
+        {% if current_user.is_authenticated and current_user.user_type == 'buyer' and product.stock > 0 %}
+        <a href="/add_to_cart/{{ product.id }}" class="btn-cart">В корзину 🛒</a>
+        {% elif not current_user.is_authenticated %}
+        <a href="/login" class="btn-login-hint">Войти для покупки</a>
+        {% elif product.stock == 0 %}
+        <span class="btn-login-hint" style="opacity:.5;">Нет в наличии</span>
+        {% elif current_user.user_type == 'seller' %}
+        <span class="btn-login-hint">Вы продавец</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="info-card text-center" style="padding:60px 24px;">
+      <div style="font-size:3rem; margin-bottom:14px;">🔍</div>
+      <h3 style="font-size:1rem;">Ничего не найдено</h3>
+      <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">Попробуйте изменить параметры поиска</p>
+      <a href="/catalog" class="btn-detail" style="padding:10px 24px;">Сбросить фильтры</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

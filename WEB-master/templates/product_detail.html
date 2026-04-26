@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="info-card text-center" style="padding:40px; position:relative;">
+      {% if product.is_on_sale %}
+      <span class="sale-badge" style="position:absolute; top:16px; left:16px;">
+        {% if product.old_price %}-{{ ((product.old_price - product.price) / product.old_price * 100)|int }}%
+        {% else %}🔥 SALE{% endif %}
+      </span>
+      {% endif %}
+      {% if current_user.is_authenticated and current_user.user_type == 'buyer' %}
+      <a href="/toggle_favorite/{{ product.id }}?next=/product/{{ product.id }}"
+         style="position:absolute; top:16px; right:16px; font-size:1.5rem; text-decoration:none;">
+        {% if is_favorite %}❤️{% else %}🤍{% endif %}
+      </a>
+      {% endif %}
+      <div style="font-size:6rem; margin-bottom:16px;">
+        {% if product.category == "Электроника" %}📱
+        {% elif product.category == "Одежда" %}👕
+        {% elif product.category == "Обувь" %}👟
+        {% elif product.category == "Аксессуары" %}🎧
+        {% elif product.category == "Книги" %}📚
+        {% elif product.category == "Бытовая техника" %}☕
+        {% else %}📦{% endif %}
+      </div>
+      <span class="product-category-tag">{{ product.category }}</span>
+      {% if product.seller %}
+      <div style="margin-top:14px; font-size:0.75rem; color:var(--text-muted);">Продавец: {{ product.seller.name }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="info-card">
+      <h2 style="font-size:1.2rem; margin-bottom:10px;">{{ product.name }}</h2>
+      <p style="color:var(--text-muted); font-size:0.88rem; line-height:1.6;">{{ product.description }}</p>
+      <hr style="border-color:var(--border); margin:18px 0;">
+      <div class="product-pricing" style="margin-bottom:14px;">
+        {% if product.old_price %}
+        <span class="price-current" style="font-size:1.6rem;">{{ "%.0f"|format(product.price) }}₽</span>
+        <span class="price-old" style="font-size:1rem;">{{ "%.0f"|format(product.old_price) }}₽</span>
+        <span class="discount-pct">Скидка {{ ((product.old_price - product.price) / product.old_price * 100)|int }}%</span>
+        <div style="font-size:0.8rem; color:var(--accent); margin-top:4px; width:100%;">
+          Вы экономите {{ "%.0f"|format(product.old_price - product.price) }}₽
+        </div>
+        {% else %}
+        <span class="price-no-sale" style="font-size:1.6rem;">{{ "%.0f"|format(product.price) }}₽</span>
+        {% endif %}
+      </div>
+
+      {% if product.stock == 0 %}
+      <div class="stock-low" style="font-size:0.85rem; margin-bottom:16px;">❌ Нет в наличии</div>
+      {% elif product.stock <= 5 %}
+      <div class="stock-low" style="font-size:0.85rem; margin-bottom:16px;">⚡ Осталось всего {{ product.stock }} шт. — торопитесь!</div>
+      {% else %}
+      <div class="stock-ok" style="font-size:0.85rem; margin-bottom:16px;">✓ В наличии ({{ product.stock }} шт.)</div>
+      {% endif %}
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        {% if current_user.is_authenticated and current_user.user_type == 'buyer' and product.stock > 0 %}
+        <a href="/add_to_cart/{{ product.id }}" class="btn-cart" style="flex:2; min-width:160px; padding:14px 20px; font-size:0.88rem; text-align:center;">
+          В корзину 🛒
+        </a>
+        {% elif not current_user.is_authenticated %}
+        <div style="background:linear-gradient(135deg,#fff7ed,#fed7aa); border-left:4px solid var(--accent-warm); border-radius:var(--radius); padding:14px 18px; font-size:0.85rem; color:var(--primary); width:100%;">
+          <a href="/login" style="color:var(--accent); font-weight:600;">Войдите</a> в аккаунт, чтобы купить этот товар
+        </div>
+        {% elif product.stock == 0 %}
+        <div class="btn-login-hint" style="padding:14px; font-size:0.85rem; opacity:.6; flex:1;">Нет в наличии</div>
+        {% elif current_user.user_type == 'seller' %}
+        <div class="btn-login-hint" style="padding:14px; font-size:0.85rem; flex:1;">Продавцы не могут покупать товары</div>
+        {% endif %}
+      </div>
+
+      <div style="margin-top:20px; display:flex; gap:16px; flex-wrap:wrap;">
+        <div style="font-size:0.75rem; color:var(--text-muted);">🚚 Быстрая доставка</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">🔄 Возврат 30 дней</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">🛡️ Гарантия качества</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if recommended %}
+<div class="mt-5">
+  <div class="section-title">🎯 Похожие товары</div>
+  <div class="row g-3">
+    {% for rec in recommended %}
+    <div class="col-md-4">
+      <div class="product-card">
+        <div class="product-card-img">
+          {% if rec.category == "Электроника" %}📱
+          {% elif rec.category == "Одежда" %}👕
+          {% elif rec.category == "Обувь" %}👟
+          {% elif rec.category == "Аксессуары" %}🎧
+          {% elif rec.category == "Книги" %}📚
+          {% elif rec.category == "Бытовая техника" %}☕
+          {% else %}📦{% endif %}
+          {% if rec.is_on_sale and rec.old_price %}
+          <span class="sale-badge">-{{ ((rec.old_price - rec.price) / rec.old_price * 100)|int }}%</span>
+          {% endif %}
+        </div>
+        <div class="product-card-body">
+          <span class="product-category-tag">{{ rec.category }}</span>
+          <div class="product-name">{{ rec.name }}</div>
+          <div class="product-pricing">
+            {% if rec.old_price %}
+            <span class="price-current">{{ "%.0f"|format(rec.price) }}₽</span>
+            <span class="price-old">{{ "%.0f"|format(rec.old_price) }}₽</span>
+            {% else %}
+            <span class="price-no-sale">{{ "%.0f"|format(rec.price) }}₽</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="product-card-footer">
+          <a href="/product/{{ rec.id }}" class="btn-detail">Посмотреть</a>
+          {% if current_user.is_authenticated and current_user.user_type == 'buyer' and rec.stock > 0 %}
+          <a href="/add_to_cart/{{ rec.id }}" class="btn-cart">🛒</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title">🛒 Корзина</div>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if cart_items %}
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="info-card" style="padding:0; overflow:hidden;">
+      <form method="post" action="/update_cart">
+        <table class="table mb-0" style="width:100%;">
+          <thead style="background:var(--surface-2);">
+            <tr>
+              <th style="padding:14px 20px; font-family:'Unbounded',sans-serif; font-size:0.72rem; font-weight:600; color:var(--text-muted);">ТОВАР</th>
+              <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.72rem; font-weight:600; color:var(--text-muted);">ЦЕНА</th>
+              <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.72rem; font-weight:600; color:var(--text-muted);">КОЛ-ВО</th>
+              <th style="padding:14px; font-family:'Unbounded',sans-serif; font-size:0.72rem; font-weight:600; color:var(--text-muted);">СУММА</th>
+              <th style="padding:14px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cart_items %}
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:16px 20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="width:44px; height:44px; background:var(--surface-2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+                    {% if item.product.category == "Электроника" %}📱
+                    {% elif item.product.category == "Одежда" %}👕
+                    {% elif item.product.category == "Обувь" %}👟
+                    {% elif item.product.category == "Аксессуары" %}🎧
+                    {% elif item.product.category == "Книги" %}📚
+                    {% elif item.product.category == "Бытовая техника" %}☕
+                    {% else %}📦{% endif %}
+                  </div>
+                  <div>
+                    <div style="font-family:'Unbounded',sans-serif; font-size:0.8rem; font-weight:600;">{{ item.product.name }}</div>
+                    <div style="font-size:0.72rem; color:var(--text-muted);">{{ item.product.category }}</div>
+                    {% if item.product.stock == 0 %}
+                    <div class="stock-low" style="font-size:0.68rem;">❌ Нет в наличии</div>
+                    {% elif item.product.stock < 5 %}
+                    <div class="stock-low" style="font-size:0.68rem;">⚡ Осталось {{ item.product.stock }} шт.</div>
+                    {% else %}
+                    <div class="stock-ok" style="font-size:0.68rem;">✓ В наличии</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td style="padding:16px; vertical-align:middle;">
+                <span class="price-current" style="font-size:0.9rem;">{{ "%.0f"|format(item.product.price) }}₽</span>
+              </td>
+              <td style="padding:16px; vertical-align:middle;">
+                <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}"
+                       min="1" max="{{ item.product.stock }}"
+                       style="width:70px; padding:6px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Onest',sans-serif;">
+              </td>
+              <td style="padding:16px; vertical-align:middle; font-family:'Unbounded',sans-serif; font-size:0.88rem; font-weight:600;">
+                {{ "%.0f"|format(item.product.price * item.quantity) }}₽
+              </td>
+              <td style="padding:16px; vertical-align:middle;">
+                <a href="/remove_from_cart/{{ item.id }}" style="font-size:1.1rem; color:var(--text-muted); text-decoration:none;" title="Удалить">🗑️</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div style="padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:10px;">
+          <a href="/catalog" class="btn-detail" style="padding:10px 20px;">← Продолжить покупки</a>
+          <button type="submit" class="btn-detail" style="padding:10px 20px;">🔄 Обновить корзину</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="info-card">
+      <h3 style="font-size:0.95rem; margin-bottom:18px;">📋 Итого</h3>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+          <span style="color:var(--text-muted);">Подытог:</span>
+          <span>{{ "%.0f"|format(subtotal) }}₽</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+          <span style="color:var(--text-muted);">Доставка:</span>
+          {% if delivery == 0 %}
+          <span style="color:#22c55e; font-weight:600;">Бесплатно</span>
+          {% else %}
+          <span>{{ "%.0f"|format(delivery) }}₽</span>
+          {% endif %}
+        </div>
+        <div style="border-top:1px solid var(--border); padding-top:10px; display:flex; justify-content:space-between;">
+          <span style="font-family:'Unbounded',sans-serif; font-size:0.85rem; font-weight:600;">Итого:</span>
+          <span class="price-current">{{ "%.0f"|format(total) }}₽</span>
+        </div>
+      </div>
+
+      {% if delivery > 0 %}
+      <div style="padding:10px 14px; background:linear-gradient(135deg,#fff7ed,#fed7aa); border-radius:var(--radius-sm); font-size:0.75rem; color:#c2410c; margin-bottom:14px;">
+        Добавьте ещё {{ "%.0f"|format(5000 - subtotal) }}₽ для бесплатной доставки
+      </div>
+      {% else %}
+      <div style="padding:10px 14px; background:linear-gradient(135deg,#f0fdf4,#dcfce7); border-radius:var(--radius-sm); font-size:0.75rem; color:#15803d; margin-bottom:14px;">
+        ✓ У вас бесплатная доставка!
+      </div>
+      {% endif %}
+
+      <form method="post" action="/checkout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-cart w-100" style="padding:14px; font-size:0.88rem;">
+          Оформить заказ →
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="info-card text-center" style="padding:60px 24px;">
+  <div style="font-size:4rem; margin-bottom:16px;">🛒</div>
+  <h3 style="font-size:1rem; margin-bottom:8px;">Корзина пуста</h3>
+  <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:24px;">Перейдите в каталог, чтобы выбрать товары</p>
+  <a href="/catalog" class="btn-cart" style="padding:12px 28px;">Перейти в каталог</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title">🗂️ Архив — товары не в наличии</div>
+<div style="padding:14px 18px; background:linear-gradient(135deg,#fff7ed,#fed7aa); border-left:4px solid var(--accent-warm); border-radius:var(--radius); margin-bottom:24px; font-size:0.88rem; color:var(--primary);">
+  Здесь находятся товары, временно отсутствующие на складе. Следите за обновлениями!
+</div>
+<div class="row g-3">
+  {% for product in products %}
+  <div class="col-md-4 col-sm-6">
+    <div class="product-card" style="opacity:.75;">
+      <div class="product-card-img" style="background:linear-gradient(135deg,#f0f0f0,#e8e8e8);">
+        {% if product.category == "Электроника" %}📱
+        {% elif product.category == "Одежда" %}👕
+        {% elif product.category == "Обувь" %}👟
+        {% elif product.category == "Аксессуары" %}🎧
+        {% elif product.category == "Книги" %}📚
+        {% elif product.category == "Бытовая техника" %}☕
+        {% else %}📦{% endif %}
+        <span class="sale-badge" style="background:linear-gradient(135deg,#9ca3af,#6b7280);">Нет в наличии</span>
+      </div>
+      <div class="product-card-body">
+        <span class="product-category-tag">{{ product.category }}</span>
+        <div class="product-name">{{ product.name }}</div>
+        <div class="product-desc">{{ product.description[:100] }}{% if product.description|length > 100 %}…{% endif %}</div>
+        <div class="product-pricing">
+          <span class="price-no-sale" style="color:var(--text-muted);">{{ "%.0f"|format(product.price) }}₽</span>
+        </div>
+        <div class="stock-low">❌ Нет в наличии</div>
+      </div>
+      <div class="product-card-footer">
+        <a href="/product/{{ product.id }}" class="btn-detail">Подробнее</a>
+        <button onclick="alert('Мы сообщим вам о поступлении!')" class="btn-detail" style="color:var(--accent-warm); border-color:var(--accent-warm);">🔔 Уведомить</button>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="info-card text-center" style="padding:60px 24px;">
+      <div style="font-size:4rem; margin-bottom:16px;">🎉</div>
+      <h3 style="font-size:1rem;">Все товары в наличии!</h3>
+      <p style="color:var(--text-muted); font-size:0.88rem;">В архиве пусто — это значит, что у нас всё есть.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

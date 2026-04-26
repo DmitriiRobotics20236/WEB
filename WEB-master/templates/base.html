@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"/>
+  <title>{{ title }}</title>
+</head>
+<body>
+<header>
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand" href="/index">🏢 ОфисМаркет</a>
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#mainNav"
+              aria-controls="mainNav" aria-expanded="false" aria-label="Меню">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <div class="navbar-nav w-100 d-flex justify-content-between align-items-center flex-wrap gap-1">
+          <div class="d-flex flex-wrap gap-1 align-items-center">
+            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="/index">🏠 Главная</a>
+            <a class="nav-link {% if request.endpoint == 'catalog' %}active{% endif %}" href="/catalog">🛍️ Каталог</a>
+            {% if current_user.is_authenticated and current_user.user_type == 'buyer' %}
+            <a class="nav-link {% if request.endpoint == 'favorites' %}active{% endif %}" href="/favorites">❤️ Избранное</a>
+            <a class="nav-link {% if request.endpoint == 'orders' %}active{% endif %}" href="/orders">📦 Мои заказы</a>
+            {% endif %}
+            {% if current_user.is_authenticated and current_user.user_type == 'seller' %}
+            <a class="nav-link {% if request.endpoint == 'seller_products' %}active{% endif %}" href="/seller/products">📋 Мои товары</a>
+            <a class="nav-link {% if request.endpoint == 'add_product' %}active{% endif %}" href="/seller/add_product">➕ Добавить товар</a>
+            {% endif %}
+            <a class="nav-link {% if request.endpoint == 'archive' %}active{% endif %}" href="/archive">🗂️ Архив</a>
+            <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="/about">ℹ️ О нас</a>
+            <a class="nav-link {% if request.endpoint == 'get_feedback' %}active{% endif %}" href="/contacts">📞 Контакты</a>
+          </div>
+          <div class="d-flex flex-wrap gap-1 align-items-center">
+            {% if current_user.is_authenticated %}
+            {% if current_user.user_type == 'buyer' %}
+            <a class="nav-link position-relative" href="/cart">
+              🛒 Корзина
+              {% if cart_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.55rem">{{ cart_count }}</span>
+              {% endif %}
+            </a>
+            {% endif %}
+            <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="/profile">👤 {{ current_user.name }}</a>
+            <a class="nav-link" href="/logout">Выйти</a>
+            {% else %}
+            <a class="nav-link" href="/register">Регистрация</a>
+            <a class="nav-link" href="/login">Войти</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main class="container-fluid px-4 mt-4" style="max-width:1280px; margin-left:auto; margin-right:auto;">
+  {% if message %}
+  <div class="alert alert-danger mb-3">{{ message }}</div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center py-4 mt-5">
+  <p>© 2026 ОфисМаркет — товары для офиса</p>
+  <small>Качество, удобство, быстрая доставка</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
