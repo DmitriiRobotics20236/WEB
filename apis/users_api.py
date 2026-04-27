@@ -57,16 +57,16 @@ def create_user():
     return jsonify({"status": "ok", "id": user.id})
 
 
-@users_api.delete("/<int:user_id>")
-def delete_user(user_id):
-    db_sess = db_session.create_session()
-
-    user = db_sess.get(User, user_id)
-
-    if not user:
-        abort(404)
-
-    db_sess.delete(user)
-    db_sess.commit()
-
-    return jsonify({"status": "deleted"})
+# @users_api.delete("/<int:user_id>")
+# def delete_user(user_id):
+#     db_sess = db_session.create_session()
+#
+#     user = db_sess.get(User, user_id)
+#
+#     if not user:
+#         abort(404)
+#
+#     db_sess.delete(user)
+#     db_sess.commit()
+#
+#     return jsonify({"status": "deleted"})

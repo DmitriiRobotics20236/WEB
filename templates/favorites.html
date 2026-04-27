@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title">❤️ Избранное</div>
+
+{% if favorites %}
+<div class="row g-3">
+  {% for fav in favorites %}
+  <div class="col-md-3 col-sm-6">
+    <div class="product-card">
+      <div class="product-card-img">
+        {% set p = fav.product %}
+        {% if p.category == "Электроника" %}📱
+        {% elif p.category == "Одежда" %}👕
+        {% elif p.category == "Обувь" %}👟
+        {% elif p.category == "Аксессуары" %}🎧
+        {% elif p.category == "Книги" %}📚
+        {% elif p.category == "Бытовая техника" %}☕
+        {% else %}📦{% endif %}
+        {% if p.is_on_sale and p.old_price %}
+        <span class="sale-badge">-{{ ((p.old_price - p.price) / p.old_price * 100)|int }}%</span>
+        {% endif %}
+      </div>
+      <div class="product-card-body">
+        <span class="product-category-tag">{{ fav.product.category }}</span>
+        <div class="product-name">{{ fav.product.name }}</div>
+        <div class="product-desc">{{ fav.product.description[:80] }}{% if fav.product.description|length > 80 %}…{% endif %}</div>
+        <div class="product-pricing">
+          {% if fav.product.old_price %}
+          <span class="price-current">{{ "%.0f"|format(fav.product.price) }}₽</span>
+          <span class="price-old">{{ "%.0f"|format(fav.product.old_price) }}₽</span>
+          {% else %}
+          <span class="price-no-sale">{{ "%.0f"|format(fav.product.price) }}₽</span>
+          {% endif %}
+        </div>
+        {% if fav.product.stock == 0 %}
+        <div class="stock-low">❌ Нет в наличии</div>
+        {% elif fav.product.stock <= 5 %}
+        <div class="stock-low">⚡ Осталось {{ fav.product.stock }} шт.</div>
+        {% else %}
+        <div class="stock-ok">✓ В наличии</div>
+        {% endif %}
+      </div>
+      <div class="product-card-footer">
+        <a href="/product/{{ fav.product.id }}" class="btn-detail">Подробнее</a>
+        <a href="/toggle_favorite/{{ fav.product.id }}?next=/favorites" class="btn-detail" style="color:var(--accent); border-color:var(--accent);">🗑️ Убрать</a>
+      </div>
+      {% if fav.product.stock > 0 %}
+      <div style="padding:0 12px 12px;">
+        <a href="/add_to_cart/{{ fav.product.id }}" class="btn-cart" style="display:block; padding:10px; text-align:center;">В корзину 🛒</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="info-card text-center" style="padding:60px 24px;">
+  <div style="font-size:4rem; margin-bottom:16px;">❤️</div>
+  <h3 style="font-size:1rem; margin-bottom:8px;">Избранное пусто</h3>
+  <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:24px;">Нажмите ❤️ на карточке товара, чтобы добавить в избранное</p>
+  <a href="/catalog" class="btn-cart" style="padding:12px 28px;">Перейти в каталог</a>
+</div>
+{% endif %}
+{% endblock %}

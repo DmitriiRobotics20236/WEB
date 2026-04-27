@@ -51,6 +51,26 @@
                     </div>
                     {{ form.submit(class="btn btn-primary") }}
                 </form>
+                <form method="post" novalidate>
+                    <div class="mb-3">{{ pass_form.old_password.label(class="form-label") }}
+                    {{ pass_form.old_password(class="form-control", rows="5") }}
+                    {% for error in pass_form.old_password.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}</div>
+                    <div class="mb-3">{{ pass_form.new_password.label(class="form-label") }}
+                    {{ pass_form.new_password(class="form-control", rows="5") }}
+                    {% for error in pass_form.new_password.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}</div>
+                    <div class="mb-3">{{ pass_form.new_password_again.label(class="form-label") }}
+                    {{ pass_form.new_password_again(class="form-control", rows="5") }}
+                    {% for error in pass_form.new_password_again.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}</div>
+                    <div class="mb-3">
+                    {{ pass_form.submit(class="btn btn-warning") }}</div>
+                    {{ pass_form.hidden_tag() }}
+                </form>
             </div>
         </div>
     </div>

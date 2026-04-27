@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title">📦 Мои заказы</div>
+
+{% if orders %}
+<div class="d-flex flex-column gap-3">
+  {% for order in orders %}
+  <div class="info-card" style="padding:0; overflow:hidden;">
+    <div style="padding:16px 20px; background:var(--surface-2); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div>
+          <div style="font-family:'Unbounded',sans-serif; font-size:0.8rem; font-weight:600;">Заказ #{{ order.id }}</div>
+          <div style="font-size:0.72rem; color:var(--text-muted);">{{ order.created_date.strftime('%d.%m.%Y в %H:%M') }}</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-family:'Unbounded',sans-serif; font-size:0.88rem; font-weight:700; color:var(--accent);">
+          {{ "%.0f"|format(order.total_amount) }}₽
+        </span>
+      </div>
+    </div>
+    <div style="padding:16px 20px;">
+      <div class="d-flex flex-column gap-2">
+        {% for item in order.items %}
+        <div style="display:flex; align-items:center; justify-content:space-between; font-size:0.85rem;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span>{{ item.quantity }} ×</span>
+            <span style="font-weight:500;">
+              {% if item.product %}{{ item.product.name }}{% else %}Товар удалён{% endif %}
+            </span>
+          </div>
+          <span style="color:var(--text-muted);">{{ "%.0f"|format(item.price * item.quantity) }}₽</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted);">
+        <span>Доставка: {% if order.delivery_cost == 0 %}<span style="color:#22c55e; font-weight:600;">Бесплатно</span>{% else %}{{ "%.0f"|format(order.delivery_cost) }}₽{% endif %}</span>
+        <span>Товары: {{ "%.0f"|format(order.total_amount) }}₽</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="info-card text-center" style="padding:60px 24px;">
+  <div style="font-size:4rem; margin-bottom:16px;">📦</div>
+  <h3 style="font-size:1rem; margin-bottom:8px;">Заказов пока нет</h3>
+  <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:24px;">Перейдите в каталог и сделайте первый заказ!</p>
+  <a href="/catalog" class="btn-cart" style="padding:12px 28px;">Перейти в каталог</a>
+</div>
+{% endif %}
+{% endblock %}

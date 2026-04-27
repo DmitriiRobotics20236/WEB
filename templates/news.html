@@ -1,37 +1,38 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1>{{title}}</h1>
-<div class="py-3">
-    {% if current_user.is_authenticated %}
-    <a href="/add_news" class="btn btn-secondary">Добавить новость</a>
-    {% endif %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div class="section-title mb-0">📰 Новости</div>
+  {% if current_user.is_authenticated %}
+  <a href="/add_news" class="btn-cart" style="padding:10px 22px; font-size:0.82rem;">+ Добавить новость</a>
+  {% endif %}
 </div>
 {% if news %}
-{% for item in news %}
-<div class="row justify-content-md-center">
-    <div class="col-md-9 border rounded">
-        <div>
-            <h2>{{item.title}}</h2>
+<div class="d-flex flex-column gap-3">
+  {% for item in news %}
+  <div class="info-card">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div style="flex:1;">
+        <h3 style="font-size:0.95rem; margin-bottom:8px;">{{ item.title }}</h3>
+        <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.6; margin-bottom:10px;">{{ item.content }}</p>
+        <div style="font-size:0.75rem; color:var(--text-muted);">
+          Автор: <strong>{{ item.user.name }}</strong> &bull; {{ item.created_date.strftime('%d.%m.%Y в %H:%M') }}
+          {% if item.is_private %} &bull; <span class="product-category-tag">Личное</span>{% endif %}
         </div>
-        <div>
-            <p>{{item.content}}</p>
-        </div>
-        <div>
-            <b>Автор</b>: {{item.user.name}}<br>
-            <b>Дата публикации</b>: {{item.created_date.strftime('%d.%m.%Y в %H:%M.')}}
-        </div>
-        {% if current_user.is_authenticated and current_user == item.user %}
-        <div class="d-flex justify-content-end py-1">
-            <a href="/news/{{item.id}}" class="btn btn-warning btn-sm">Изменить</a>&nbsp;
-            <a href="/news_del/{{item.id}}" class="btn btn-danger btn-sm">Удалить</a>
-        </div>
-        {% endif %}
+      </div>
+      {% if current_user.is_authenticated and current_user.id == item.user_id %}
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <a href="/news/{{ item.id }}" class="btn-detail" style="padding:7px 14px; font-size:0.75rem;">✏️</a>
+        <a href="/news_del/{{ item.id }}" style="padding:7px 14px; font-size:0.75rem; border-radius:var(--radius-sm); border:1.5px solid var(--accent); color:var(--accent); display:inline-block;">🗑️</a>
+      </div>
+      {% endif %}
     </div>
+  </div>
+  {% endfor %}
 </div>
-
-{% endfor %}
 {% else %}
-<h2>Пока новостей нет!</h2>
+<div class="info-card text-center" style="padding:60px 24px;">
+  <div style="font-size:4rem; margin-bottom:16px;">📰</div>
+  <h3 style="font-size:1rem;">Новостей пока нет</h3>
+</div>
 {% endif %}
 {% endblock %}

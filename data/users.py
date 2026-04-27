@@ -18,10 +18,12 @@ class User(SqlAlchemyBase, UserMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
-    news = orm.relationship("News", back_populates='user')
-    cart_items = orm.relationship("CartItem", back_populates='user')
+    news = orm.relationship("News", back_populates='user', cascade="all, delete")
+    cart_items = orm.relationship("CartItem", back_populates='user', cascade="all, delete")
     money = sqlalchemy.Column(sqlalchemy.DECIMAL, nullable=False, default=0)
-    products = orm.relationship("Product", back_populates="user")
+    products = orm.relationship("Product", back_populates="user", cascade="all, delete")
+    favorites = orm.relationship("Favorite", back_populates='user')
+    orders = orm.relationship("Order", back_populates='user')
     is_seller = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
 
     def __repr__(self):

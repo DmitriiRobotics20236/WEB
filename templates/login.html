@@ -1,24 +1,31 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1>Для авторизации введите логин и пароль!</h1>
-<form method="post" class="login-form" novalidate>
-    <div> {{f.csrf_token}} </div>
-    {% for field in f if field.name != 'csrf_token' %}
-    <div>
-        {% if field.name != 'submit' %}
-            {{ field.label(class="form-label") }}
-        {% endif %}
-        {% if field.name != 'remember_me' %}
-        {{ field(class="form-control") }}
-        {% elif field.name == 'remember_me' %}
-        {{field(class="form-check-input")}}
-        {% endif %}
-        {% for error in field.errors %}
-            <div class="alert alert-danger">{{error}}</div>
-        {% endfor %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="info-card">
+      <h2 style="font-size:1.1rem; margin-bottom:24px;">Вход в аккаунт</h2>
+      <form method="post" novalidate>
+        {{ f.hidden_tag() }}
+        <div class="mb-3">
+          {{ f.email.label(class="form-label") }}
+          {{ f.email(class="form-control") }}
+          {% for e in f.email.errors %}<div class="alert alert-danger mt-1 py-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          {{ f.password.label(class="form-label") }}
+          {{ f.password(class="form-control") }}
+          {% for e in f.password.errors %}<div class="alert alert-danger mt-1 py-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-4 d-flex align-items-center gap-2">
+          {{ f.remember_me(class="form-check-input", style="margin:0;") }}
+          {{ f.remember_me.label(class="form-check-label", style="font-size:.88rem;") }}
+        </div>
+        {{ f.submit(class="btn-cart w-100", style="display:block; padding:13px;") }}
+      </form>
+      <p style="margin-top:16px; font-size:0.85rem; color:var(--text-muted); text-align:center;">
+        Нет аккаунта? <a href="/register" style="color:var(--accent);">Зарегистрироваться</a>
+      </p>
     </div>
-    {% endfor %}
-</form>
-<br><a href="/index">Назад</a></p>
+  </div>
+</div>
 {% endblock %}

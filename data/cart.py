@@ -9,9 +9,9 @@ class CartItem(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("users.id"))
+                                sqlalchemy.ForeignKey("users.id", ondelete="CASCADE"))
     product_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                   sqlalchemy.ForeignKey("products.id"))
+                                   sqlalchemy.ForeignKey("products.id", ondelete="CASCADE"))
     quantity = sqlalchemy.Column(sqlalchemy.Integer, default=1)
 
     user = orm.relationship('User', back_populates='cart_items')

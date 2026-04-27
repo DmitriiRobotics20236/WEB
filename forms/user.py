@@ -19,7 +19,8 @@ class RegisterForm(FlaskForm):
                     Length(min=3,
                            message='Пароль слишком короткий')])
     name = StringField('Имя пользователя:',
-                       validators=[DataRequired('Введите своё имя')])
+                       validators=[DataRequired('Введите своё имя'), Length(min=2, max=50,
+                                                                message="Длина должна быть от 2 до 50 символов")])
     about = TextAreaField('Немного о себе:')
     is_seller = BooleanField("Роль - продавец?")
     submit = SubmitField('Регистрация')
