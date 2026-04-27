@@ -82,6 +82,15 @@ def access_forbidden(error):
     # иначе обычная страница
     return render_template("403.html"), 403
 
+@app.errorhandler(401)
+def unauthorized_access(error):
+    if request.path.startswith("/api/"):  # если это API — возвращаем JSON
+        return jsonify({
+            "error": "Unauthorized access"
+        }), 401
+    # иначе обычная страница
+    return render_template("401.html"), 401
+
 
 @app.route("/")  # декоратор
 @app.route("/index")
