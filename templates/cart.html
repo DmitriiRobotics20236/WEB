@@ -17,6 +17,7 @@
                 </tr>
             </thead>
             <tbody>
+            <form style="display: inline" method="post" action="/update_cart">
                 {% for item in cart_items %}
                 <tr>
                     <td>
@@ -34,6 +35,7 @@
                     </td>
                 </tr>
                 {% endfor %}
+                <button type="submit" class="btn btn-primary">Обновить корзину</button></form>
             </tbody>
             <tfoot>
                 <tr class="table-info">
@@ -48,8 +50,6 @@
     <div class="d-flex justify-content-between mt-3">
         <a href="/catalog" class="btn btn-secondary">Продолжить покупки</a>
         <div>
-            <form style="display: inline" method="post" action="/update_cart">
-                <button type="submit" class="btn btn-primary">Обновить корзину</button></form>
             <form method="post" style="display: inline">{{ form.hidden_tag() }}{{ form.submit(class="btn btn-success", type="submit") }}</form>
         </div>
     </div>

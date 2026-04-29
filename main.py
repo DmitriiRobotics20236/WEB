@@ -1,8 +1,8 @@
 import datetime
 import io
 import os
+import sys
 from decimal import Decimal
-from sys import prefix
 
 from flask import (
     Flask,
@@ -42,7 +42,15 @@ from PIL import Image
 # for decorators
 from custom_decorators import for_sellers
 
-app = Flask(__name__)
+
+def get_recourse_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+
+app = Flask(__name__, static_folder=get_recourse_path("static"),
+            template_folder=get_recourse_path("templates"))
 app.config["SECRET_KEY"] = "just_simple_key"
 app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=365)
 ADMIN_EMAIL = "1@mail.ru"
@@ -81,6 +89,7 @@ def access_forbidden(error):
         }), 403
     # иначе обычная страница
     return render_template("403.html"), 403
+
 
 @app.errorhandler(401)
 def unauthorized_access(error):
@@ -375,7 +384,6 @@ def catalog_similar(sort_form, del_form, products, db_sess, title):
                 sort_form.max_price.data = prod[-1].price
         else:
             sort_form_full = True
-        print(sort_form.min_price.data, sort_form.max_price.data)
         products = products.filter(sort_form.max_price.data >= Product.price,
                                    Product.price >= sort_form.min_price.data).all()
         if sort_form.price.data == ">":
@@ -450,7 +458,7 @@ def add_edit_product(edit=tuple()):
         product.stock = form.stock.data
         product.is_on_sale = form.is_on_sale.data
         product.user_id = current_user.id
-        img = Image.open(form.image.data)
+        img = Image.open(form.image.data).convert("RGB")
         img.thumbnail((400, 400))
         buffer = io.BytesIO()
         img.save(buffer, format="JPEG", quality=85)
@@ -698,10 +706,10 @@ def ads():
     if not db_sess.query(Advertisement).all():
         ads = [
             Advertisement(title="Скидка 30% на электронику!",
-                      text="Только до конца месяца — лучшие гаджеты по сниженным ценам.",
-                      link="/catalog?category=Электроника&sort=sale", badge="ХИТ"),
+                          text="Только до конца месяца — лучшие гаджеты по сниженным ценам.",
+                          link="/catalog?category=Электроника&sort=sale", badge="ХИТ"),
             Advertisement(title="Бесплатная доставка от 5000₽", text="Заказывайте больше — экономьте на доставке.",
-                      link="/catalog", badge="ВЫГОДА"),
+                          link="/catalog", badge="ВЫГОДА"),
         ]
         for ad in ads:
             db_sess.add(ad)
@@ -716,4 +724,6 @@ if __name__ == "__main__":
     app.register_blueprint(users_api)
     app.register_blueprint(news_api)
     ads()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # для доступа к сайту через глоб интернет
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)

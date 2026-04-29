@@ -17,7 +17,7 @@ class Order(SqlAlchemyBase):
     def total_amount(self):
         summ = 0
         for el in self.items:
-            summ += el.price
+            summ += el.price * el.quantity
         return summ
 
 class OrderItem(SqlAlchemyBase):
